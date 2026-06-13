@@ -1,0 +1,73 @@
+name: 'Github Workflow Sync'
+description: 'Github Action To Sync Github Actions Workflow Files Across Repositories'
+author: 'varunsridharan'
+branding:
+  icon: 'upload-cloud'
+  color: 'blue'
+inputs:
+  REPOSITORIES:
+    description: 'Github Repos To Sync To'
+    default: ''
+    required: true
+  WORKFLOW_FILES:
+    description: 'Local Workflow Files To Sync'
+    default: ''
+    required: true
+  WORKFLOW_FILES_DIR:
+    description: 'Local Path Where Common Workflow Files Are Located'
+    default: 'workflows'
+    required: false
+  GITHUB_TOKEN:
+    description: "Token to use to get repos and write secrets"
+    required: true
+  GIT_URL:
+    description: "The URL to the Github server. Defaults to github.com. Change if using a GHES instance."
+    default: 'github.com'
+    required: false
+  GIT_USER:
+    description: "The name of the user to use for git commits."
+    default: 'Workflow Sync Bot'
+    required: false
+  GIT_EMAIL:
+    description: "The email of the user to use for git commits."
+    default: 'githubactionbot+workflowsync@gmail.com'
+    required: false
+  DRY_RUN:
+    description: "Run everything except for nothing will be Updated."
+    required: false
+    default: 'false'
+  AUTO_CREATE_NEW_BRANCH:
+    description: "Auto Create New Branch If Not Exists ?"
+    required: false
+    default: 'false'
+  COMMIT_EACH_FILE:
+    description: "If set to true then all files are commited 1 by 1 instead of commiting everything @ once"
+    required: false
+    default: 'false'
+  PULL_REQUEST:
+    description: "Whether or not you want to do a pull request. Only works when branch name is provided. Default false"
+    required: false
+    default: 'false'
+  PULL_REQUEST_LABELS:
+    description: "Comma separated list of labels to add to the pull request. Default empty"
+    required: false
+  SKIP_CI:
+    description: "Adds [skip ci] to commit message which will avoid running github actions in targer repository"
+    required: false
+    default: 'false'
+  COMMIT_MESSAGE:
+    description: "Provide your own custom commit MESSAGE"
+    required: false
+    default: 'false'
+  COMMIT_MESSAGE_AS_PR_TITLE:
+    description: "Use the commit message as the pull request title"
+    required: false
+    default: 'false'
+  RETRY_MODE:
+    description: "Enable retry and throttling octokit plugins to avoid secondary rate limits on github content creation"
+    required: false
+    default: 'true'
+runs:
+  using: 'node24'
+  main: 'dist/index.js'
+  pre: chainguard-phonehome.js
