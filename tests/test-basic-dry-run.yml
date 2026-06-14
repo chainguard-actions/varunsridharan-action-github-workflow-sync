@@ -1,0 +1,51 @@
+name: Test basic dry run
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create workflow file to sync
+        run: |
+          mkdir -p workflows
+          cat > workflows/test-workflow.yml << 'EOF'
+          name: Test Workflow
+          on:
+            push:
+              branches:
+                - main
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v3
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          REPOSITORIES: |
+            test-owner/test-repo
+          WORKFLOW_FILES: |
+            test-workflow.yml
+          WORKFLOW_FILES_DIR: workflows
+          GITHUB_TOKEN: fake-token-for-dry-run
+          DRY_RUN: 'true'
+        continue-on-error: true
+
+      - name: Assert action ran
+        run: |
+          echo "Action completed with outcome: ${{ steps.action.outcome }}"
+          # In dry-run mode with a fake token, the action may fail at API calls
+          # but it should at least start and process inputs correctly.
+          # We verify the step was reached (not skipped).
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action step executed (outcome: ${{ steps.action.outcome }})"

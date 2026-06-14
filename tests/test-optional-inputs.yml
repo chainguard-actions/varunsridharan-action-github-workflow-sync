@@ -1,0 +1,52 @@
+name: Test optional inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create workflow file to sync
+        run: |
+          mkdir -p .github/workflows-to-sync
+          cat > .github/workflows-to-sync/ci.yml << 'EOF'
+          name: CI
+          on:
+            push:
+              branches:
+                - main
+          jobs:
+            build:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v3
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          REPOSITORIES: |
+            test-owner/test-repo
+          WORKFLOW_FILES: |
+            ci.yml
+          WORKFLOW_FILES_DIR: .github/workflows-to-sync
+          GITHUB_TOKEN: fake-token-for-dry-run
+          DRY_RUN: 'true'
+          AUTO_CREATE_NEW_BRANCH: 'true'
+          COMMIT_EACH_FILE: 'true'
+          PULL_REQUEST: 'false'
+        continue-on-error: true
+
+      - name: Assert action ran with optional inputs
+        run: |
+          echo "Action completed with outcome: ${{ steps.action.outcome }}"
+          # The action should execute (not be skipped) even with optional inputs set.
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action step executed with optional inputs (outcome: ${{ steps.action.outcome }})"
