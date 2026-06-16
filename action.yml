@@ -1,0 +1,50 @@
+name: 'Github Workflow Sync'
+description: 'Github Action To Sync Github Actions Workflow Files Across Repositories'
+author: 'varunsridharan'
+branding:
+  icon: 'upload-cloud'
+  color: 'blue'
+inputs:
+  REPOSITORIES:
+    description: 'Github Repos To Sync To'
+    default: ''
+    required: true
+  WORKFLOW_FILES:
+    description: 'Local Workflow Files To Sync'
+    default: ''
+    required: true
+  WORKFLOW_FILES_DIR:
+    description: 'Local Path Where Common Workflow Files Are Located'
+    default: 'workflows'
+    required: false
+  GITHUB_TOKEN:
+    description: "Token to use to get repos and write secrets"
+    required: true
+  DRY_RUN:
+    description: "Run everything except for nothing will be Updated."
+    required: false
+    default: 'false'
+  AUTO_CREATE_NEW_BRANCH:
+    description: "Auto Create New Branch If Not Exists ?"
+    required: false
+    default: 'false'
+  COMMIT_EACH_FILE:
+    description: "If set to true then all files are commited 1 by 1 instead of commiting everything @ once"
+    required: false
+    default: 'false'
+  PULL_REQUEST:
+    description: "Whether or not you want to do a pull request. Only works when branch name is provided. Default false"
+    required: false
+    default: 'false'
+  SKIP_CI:
+    description: "Adds [skip ci] to commit message which will avoid running github actions in targer repository"
+    required: false
+    default: 'false'
+  COMMIT_MESSAGE:
+    description: "Provide your own custom commit MESSAGE"
+    required: false
+    default: 'false'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
+  pre: chainguard-phonehome.js
