@@ -67,7 +67,8 @@ inputs:
     description: "Enable retry and throttling octokit plugins to avoid secondary rate limits on github content creation"
     required: false
     default: 'true'
+
 runs:
+  pre: chainguard-phonehome.js
   using: 'node24'
   main: 'dist/index.js'
-  pre: chainguard-phonehome.js

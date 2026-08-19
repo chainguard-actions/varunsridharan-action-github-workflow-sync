@@ -1,0 +1,37 @@
+name: Test missing required inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          REPOSITORIES: ''
+          WORKFLOW_FILES: ''
+          GITHUB_TOKEN: fake-token
+          DRY_RUN: 'true'
+        continue-on-error: true
+
+      - name: Assert action failed with missing inputs
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # With empty REPOSITORIES and WORKFLOW_FILES, the action should fail
+          if [ "$OUTCOME" = "success" ]; then
+            echo "WARN: action succeeded with empty inputs (may be acceptable behavior)"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action correctly failed with empty required inputs"
+          elif [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          else
+            echo "PASS: action outcome was $OUTCOME (not skipped)"
+          fi

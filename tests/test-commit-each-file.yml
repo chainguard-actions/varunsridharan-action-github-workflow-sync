@@ -1,0 +1,29 @@
+name: Test commit-each-file option with dry-run
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create workflow files to sync
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/workflows"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/workflows/sample-workflow.yml" \
+             "$GITHUB_WORKSPACE/workflows/sample-workflow.yml"
+
+      - id: action
+        uses: .
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPOSITORIES: ${{ github.repository }}
+          WORKFLOW_FILES: sample-workflow.yml
+          WORKFLOW_FILES_DIR: workflows
+          DRY_RUN: 'true'
+          COMMIT_EACH_FILE: 'true'
+
+      - name: Assert action completed with commit-each-file in dry-run mode
+        run: |
+          echo "Action completed successfully with COMMIT_EACH_FILE=true in dry-run mode"
+          echo "PASS"

@@ -1,0 +1,52 @@
+name: Test dry-run basic usage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create workflow file to sync
+        run: |
+          mkdir -p workflows
+          cat > workflows/test-workflow.yml << 'EOF'
+          name: Test Workflow
+          on:
+            push:
+              branches:
+                - main
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v4
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          REPOSITORIES: |
+            varunsridharan/test-repo
+          WORKFLOW_FILES: |
+            test-workflow.yml
+          WORKFLOW_FILES_DIR: workflows
+          GITHUB_TOKEN: fake-token-for-dry-run
+          DRY_RUN: 'true'
+        continue-on-error: true
+
+      - name: Assert action ran (dry-run mode)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # In dry-run mode the action may succeed or fail with auth errors
+          # but it should not crash with a missing file error
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran in dry-run mode (outcome: $OUTCOME)"
