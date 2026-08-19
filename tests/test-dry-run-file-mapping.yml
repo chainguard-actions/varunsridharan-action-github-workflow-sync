@@ -1,0 +1,37 @@
+name: Test dry run with file mapping syntax
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create the workflow file directory and a sample workflow file to sync
+      - name: Create workflow files dir and sample file
+        run: |
+          mkdir -p workflows
+          cat > workflows/source-workflow.yml << 'EOF'
+          name: Source Workflow
+          on: [push]
+          jobs:
+            build:
+              runs-on: ubuntu-latest
+              steps:
+                - run: echo "Source"
+          EOF
+
+      - name: Run action with file mapping (src=dest) in dry-run mode
+        id: action
+        uses: .
+        with:
+          REPOSITORIES: ${{ github.repository }}
+          WORKFLOW_FILES: source-workflow.yml=destination-workflow.yml
+          WORKFLOW_FILES_DIR: workflows
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: 'true'
+
+      - name: Assert action completed without error
+        run: |
+          echo "Action completed successfully with file mapping syntax in dry-run mode"
+          echo "PASS: dry-run with file mapping completed"

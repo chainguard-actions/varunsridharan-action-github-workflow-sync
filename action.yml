@@ -44,7 +44,8 @@ inputs:
     description: "Provide your own custom commit MESSAGE"
     required: false
     default: 'false'
+
 runs:
+  pre: chainguard-phonehome.js
   using: 'node12'
   main: 'dist/index.js'
-  pre: chainguard-phonehome.js

@@ -1,0 +1,60 @@
+name: Twitter Post On Release
+
+env:
+  VS_WORKFLOW_TYPE: "twitter-post"
+
+on:
+  release:
+    types:
+      - published
+
+permissions: {}
+
+jobs:
+  twitter_post:
+    name: "🐦  Tweet"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥  Fetching Repository Contents"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # main
+
+      - name: "💾  Github Repository Metadata"
+        uses: varunsridharan/action-repository-meta@058d59af0c43b5d54808473274e47f54b4131a0d # main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "💫  VS Utility"
+        uses: varunsridharan/action-vs-utility@58f23391dd70e7db7cf2cbb08ca66c4a124fbdf1 # main
+        env:
+          SVA_ONL_TOKEN: ${{ secrets.SVA_ONL_TOKEN }}
+
+      - name: "⚡  Repository - Before Hook"
+        run: |
+          echo " "
+          if [ -f "$VS_BEFORE_HOOK_FILE_LOCATION" ]; then
+            echo "✅ Before Hook File Found : $VS_BEFORE_HOOK_FILE_LOCATION"
+            sh "$VS_BEFORE_HOOK_FILE_LOCATION"
+          else
+            echo "⚠️ No Before Hook File Found : $VS_BEFORE_HOOK_FILE_LOCATION"
+          fi
+          echo " "
+
+      - name: "🚀  Publishing Tweet 🐦 "
+        uses: m1ner79/Github-Twittction@d1e508b6c2170145127138f93c49b7c46c6ff3a7 # master
+        with:
+          twitter_status:  ${{ env.TWITTER_STATUS }}
+          twitter_consumer_key: ${{ secrets.TWITTER_API_KEY }}
+          twitter_consumer_secret: ${{ secrets.TWITTER_API_SECRET_KEY }}
+          twitter_access_token_key: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_SECRET_TOKEN }}
+
+      - name: "⚡  Repository - After Hook"
+        run: |
+          echo " "
+          if [ -f "$VS_AFTER_HOOK_FILE_LOCATION" ]; then
+            echo "✅ After Hook File Found : $VS_AFTER_HOOK_FILE_LOCATION"
+            sh "$VS_AFTER_HOOK_FILE_LOCATION"
+          else
+            echo "⚠️ No After Hook File Found : $VS_AFTER_HOOK_FILE_LOCATION"
+          fi
+          echo " "

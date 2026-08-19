@@ -1,0 +1,41 @@
+name: Test dry run with branch specifier
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create the workflow file directory and a sample workflow file to sync
+      - name: Create workflow files dir and sample file
+        run: |
+          mkdir -p workflows
+          cat > workflows/deploy.yml << 'EOF'
+          name: Deploy
+          on:
+            push:
+              branches:
+                - main
+          jobs:
+            deploy:
+              runs-on: ubuntu-latest
+              steps:
+                - run: echo "Deploy"
+          EOF
+
+      - name: Run action with branch specifier in dry-run mode
+        id: action
+        uses: .
+        with:
+          REPOSITORIES: ${{ github.repository }}@main
+          WORKFLOW_FILES: deploy.yml
+          WORKFLOW_FILES_DIR: workflows
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: 'true'
+          AUTO_CREATE_NEW_BRANCH: 'false'
+
+      - name: Assert action completed without error
+        run: |
+          echo "Action completed successfully with branch specifier in dry-run mode"
+          echo "PASS: dry-run with branch specifier completed"

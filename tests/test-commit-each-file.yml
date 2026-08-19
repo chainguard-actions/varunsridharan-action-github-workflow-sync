@@ -1,0 +1,28 @@
+name: Test commit-each-file flag
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          REPOSITORIES: |
+            varunsridharan/demo
+          WORKFLOW_FILES: |
+            test-workflow.yml
+          WORKFLOW_FILES_DIR: tests/fixtures/workflows
+          GITHUB_TOKEN: fake-token-for-commit-each-file-test
+          DRY_RUN: 'true'
+          COMMIT_EACH_FILE: 'true'
+
+      - name: Assert action completed with commit-each-file enabled
+        run: |
+          echo "Action completed with COMMIT_EACH_FILE=true in dry-run mode without fatal error"
+          echo "PASS"

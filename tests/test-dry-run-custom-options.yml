@@ -1,0 +1,40 @@
+name: Test dry run with custom options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create the workflow file directory and a sample workflow file to sync
+      - name: Create workflow files dir and sample file
+        run: |
+          mkdir -p workflows
+          cat > workflows/ci.yml << 'EOF'
+          name: CI
+          on: [push]
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - run: echo "CI"
+          EOF
+
+      - name: Run action with custom options in dry-run mode
+        id: action
+        uses: .
+        with:
+          REPOSITORIES: ${{ github.repository }}
+          WORKFLOW_FILES: ci.yml
+          WORKFLOW_FILES_DIR: workflows
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: 'true'
+          SKIP_CI: 'true'
+          COMMIT_EACH_FILE: 'true'
+          COMMIT_MESSAGE: 'chore: sync workflow files [skip ci]'
+
+      - name: Assert action completed without error
+        run: |
+          echo "Action completed successfully with custom options in dry-run mode"
+          echo "PASS: dry-run with custom options completed"

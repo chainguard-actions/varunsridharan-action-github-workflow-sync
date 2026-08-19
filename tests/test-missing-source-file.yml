@@ -1,0 +1,29 @@
+name: Test missing source file handling
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Do NOT create the workflow file - it should be missing
+      - name: Ensure workflow files dir exists but file is absent
+        run: |
+          mkdir -p workflows
+          echo "workflows dir created, but nonexistent-file.yml is not present"
+
+      - name: Run action with missing source file in dry-run mode
+        id: action
+        uses: .
+        with:
+          REPOSITORIES: ${{ github.repository }}
+          WORKFLOW_FILES: nonexistent-file.yml
+          WORKFLOW_FILES_DIR: workflows
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: 'true'
+
+      - name: Assert action completed without crashing
+        run: |
+          echo "Action handled missing source file gracefully (logged error, continued)"
+          echo "PASS: missing source file handled without crash"
