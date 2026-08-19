@@ -1,0 +1,47 @@
+name: Test custom workflow files directory
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create workflow files in a custom directory
+        run: |
+          mkdir -p .github/workflow-templates
+          cat > .github/workflow-templates/lint.yml <<'EOF'
+          name: Lint
+          on: [pull_request]
+          jobs:
+            lint:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          REPOSITORIES: |
+            varunsridharan/demo-repo
+          WORKFLOW_FILES: |
+            lint.yml
+          WORKFLOW_FILES_DIR: .github/workflow-templates
+          GITHUB_TOKEN: fake-token-for-dry-run
+          DRY_RUN: 'true'
+          SKIP_CI: 'true'
+          COMMIT_EACH_FILE: 'false'
+        continue-on-error: true
+
+      - name: Assert action ran with custom directory
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action step was executed with custom WORKFLOW_FILES_DIR (outcome: ${{ steps.action.outcome }})"

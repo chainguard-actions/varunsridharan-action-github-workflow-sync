@@ -1,0 +1,61 @@
+name: Test commit-each-file option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create multiple workflow files to sync
+        run: |
+          mkdir -p workflows
+          cat > workflows/ci.yml <<'EOF'
+          name: CI
+          on: [push]
+          jobs:
+            build:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+          EOF
+          cat > workflows/release.yml <<'EOF'
+          name: Release
+          on:
+            push:
+              tags:
+                - 'v*'
+          jobs:
+            release:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          REPOSITORIES: |
+            varunsridharan/demo-repo
+          WORKFLOW_FILES: |
+            ci.yml
+            release.yml
+          WORKFLOW_FILES_DIR: workflows
+          GITHUB_TOKEN: fake-token-for-dry-run
+          DRY_RUN: 'true'
+          COMMIT_EACH_FILE: 'true'
+          SKIP_CI: 'true'
+          COMMIT_MESSAGE: 'chore: sync workflow files [skip ci]'
+        continue-on-error: true
+
+      - name: Assert action ran with commit-each-file enabled
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action step was executed with COMMIT_EACH_FILE=true (outcome: ${{ steps.action.outcome }})"

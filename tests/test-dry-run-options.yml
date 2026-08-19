@@ -1,0 +1,55 @@
+name: Test Dry Run With Options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create workflow files to sync
+        run: |
+          mkdir -p workflows
+          cat > workflows/ci.yml << 'EOF'
+          name: CI
+          on:
+            push:
+              branches: [main]
+          jobs:
+            build:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v4
+                - run: echo "build"
+          EOF
+          cat > workflows/lint.yml << 'EOF'
+          name: Lint
+          on:
+            pull_request:
+          jobs:
+            lint:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v4
+                - run: echo "lint"
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          REPOSITORIES: |
+            ${{ github.repository }}
+          WORKFLOW_FILES: |
+            ci.yml
+            lint.yml
+          WORKFLOW_FILES_DIR: workflows
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: 'true'
+          SKIP_CI: 'true'
+          COMMIT_EACH_FILE: 'true'
+          RETRY_MODE: 'true'
+
+      - name: Assert action completed successfully
+        run: |
+          echo "Action completed in dry-run mode with options"
+          echo "PASS: action ran without error"
