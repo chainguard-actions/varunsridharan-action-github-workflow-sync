@@ -36,7 +36,8 @@ inputs:
     description: "Whether or not you want to do a pull request. Only works when branch name is provided. Default false"
     required: false
     default: 'false'
+
 runs:
+  pre: chainguard-phonehome.js
   using: 'node12'
   main: 'dist/index.js'
-  pre: chainguard-phonehome.js

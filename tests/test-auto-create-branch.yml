@@ -1,0 +1,42 @@
+name: Test auto-create-branch with dry-run
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create workflow file to sync
+        run: |
+          mkdir -p workflows
+          cat > workflows/ci.yml << 'EOF'
+          name: CI
+          on:
+            push:
+              branches:
+                - main
+          jobs:
+            build:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+          EOF
+
+      - id: action
+        name: Run action with auto-create-branch in dry-run mode
+        uses: .
+        with:
+          REPOSITORIES: |
+            ${{ github.repository }}
+          WORKFLOW_FILES: |
+            ci.yml
+          WORKFLOW_FILES_DIR: workflows
+          GITHUB_TOKEN: ${{ github.token }}
+          DRY_RUN: 'true'
+          AUTO_CREATE_NEW_BRANCH: 'true'
+
+      - name: Assert action completed with auto-create-branch option
+        run: |
+          echo "Action completed successfully with AUTO_CREATE_NEW_BRANCH=true in dry-run mode"
+          echo "PASS"

@@ -1,0 +1,41 @@
+name: Test dry-run mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create workflow file to sync
+        run: |
+          mkdir -p workflows
+          cat > workflows/test-workflow.yml << 'EOF'
+          name: Test Workflow
+          on:
+            push:
+              branches:
+                - main
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+          EOF
+
+      - id: action
+        name: Run action in dry-run mode
+        uses: .
+        with:
+          REPOSITORIES: |
+            ${{ github.repository }}
+          WORKFLOW_FILES: |
+            test-workflow.yml
+          WORKFLOW_FILES_DIR: workflows
+          GITHUB_TOKEN: ${{ github.token }}
+          DRY_RUN: 'true'
+
+      - name: Assert action completed in dry-run mode
+        run: |
+          echo "Action completed successfully in dry-run mode"
+          echo "PASS"
