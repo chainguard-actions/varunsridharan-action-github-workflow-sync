@@ -4,8 +4,13 @@
   "version": "3.5",
   "commit_sha": "3c60cce5ee8e615a7c68ac75fc14893dcac62d49",
   "url": "https://github.com/varunsridharan/action-github-workflow-sync",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2"
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/varunsridharan/action-github-workflow-sync/3.5/sha256-46a31972fc3162d6546386d9833c2b29f8988b9cc550ed89370ee15f3d1e2800.tar.gz",
+    "sha256": "46a31972fc3162d6546386d9833c2b29f8988b9cc550ed89370ee15f3d1e2800",
+    "size_bytes": 595842
+  }
 }
